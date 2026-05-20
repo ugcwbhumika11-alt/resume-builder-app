@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="manifest" href="/resume-builder-app/manifest.json"/>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/resume-builder-app/manifest.json">
 <meta name="theme-color" content="#2557a7" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Resume Builder" />
@@ -1236,9 +1239,10 @@ Start your response with the salary range on the very first line in format: "RAN
     btn.disabled = false; btn.textContent = 'Get Salary Guide 💰';
   }
 </script>
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js");
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/resume-builder-app/sw.js');
   }
-</script></body>
+</script>
+</body>
 </html>

@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#2557a7" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Resume Builder" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HireReady AI – Resume & Job Helper</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #00d4aa;
+    --accent2: #4493f8;
+    --accent3: #f7b955;
+    --danger: #f85149;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --glow: rgba(0,212,170,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(0,212,170,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 100% 100%, rgba(68,147,248,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Cabinet Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+
+  .premium-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0d1117;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    transition: opacity 0.2s;
+  }
+
+  .premium-btn:hover { opacity: 0.85; }
+
+  /* API Bar */
+  .api-bar {
+    background: linear-gradient(135deg, rgba(0,212,170,0.1), rgba(68,147,248,0.08));
+    border-bottom: 1px solid rgba(0,212,170,0.2);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .api-bar.hidden { display: none; }
+
+  .api-bar-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .api-row { display: flex; gap: 8px; flex: 1; min-width: 260px; }
+
+  .api-input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: monospace;
+    outline: none;
+  }
+
+  .api-input:focus { border-color: var(--accent); }
+  .api-input::placeholder { color: var(--text-dim); }
+
+  .api-save {
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+  }
+
+  /* Nav */
+  .nav {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 20px;
+  }
+
+  .nav::-webkit-scrollbar { display: none; }
+
+  .nav-btn {
+    padding: 14px 18px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Main */
+  .main {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hero */
+  .hero {
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.2);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: 'Cabinet Grotesk', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -1px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 500px;
+    margin-bottom: 28px;
+  }
+
+  .hero-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .hero-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .hero-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Cards */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .feat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .feat-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px var(--glow);
+  }
+
+  .feat-icon { font-size: 26px; margin-bottom: 10px; }
+
+  .feat-card h3 {
+    font-family: 'Cabinet Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .feat-card p { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+  /* Input Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-family: 'Cabinet Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+
+  .card-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+
+  .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  .lbl:first-of-type { margin-top: 0; }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Instrument Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-dim); }
+  textarea { min-height: 110px; line-height: 1.6; }
+  select { cursor: pointer; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+
+  .go-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), #00b894);
+    color: #0d1117;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+
+  .go-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--glow); }
+  .go-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Result */
+  .result {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 18px;
+    padding: 24px;
+    display: none;
+    animation: fadeUp 0.3s ease;
+    box-shadow: 0 0 30px rgba(0,212,170,0.08);
+  }
+
+  .result.show { display: block; }
+
+  .result-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ai-tag {
+    background: var(--accent);
+    color: #0d1117;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+
+  .result-label { font-size: 13px; color: var(--text-dim); font-weight: 600; }
+
+  .copy-btn {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .result-body {
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+
+  /* Loading */
+  .dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+
+  .dot:nth-child(1) { background: var(--accent); }
+  .dot:nth-child(2) { background: var(--accent2); animation-delay: 0.2s; }
+  .dot:nth-child(3) { background: var(--accent3); animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+    40% { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* Interview */
+  .qa-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 12px;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .qa-q {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .qa-q-num {
+    background: rgba(68,147,248,0.15);
+    color: var(--accent2);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 1px;
+  }
+
+  .qa-a {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .qa-a.show { display: block; }
+
+  .reveal-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+
+  .reveal-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Error */
+  .err {
+    background: rgba(248,81,73,0.1);
+    border: 1px solid rgba(248,81,73,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--danger);
+    margin-top: 10px;
+    display: none;
+  }
+
+  .err.show { display: block; }
+
+  /* Salary section */
+  .salary-result {
+    background: linear-gradient(135deg, var(--surface), var(--surface2));
+    border: 1px solid var(--accent);
+    border-radius: 18px;
+    padding: 28px;
+    text-align: center;
+    display: none;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .salary-result.show { display: block; }
+
+  .salary-range {
+    font-family: 'Cabinet Grotesk', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+    margin: 12px 0;
+  }
+
+  .salary-label { font-size: 14px; color: var(--text-dim); margin-bottom: 20px; }
+
+  .salary-body {
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 26px; }
+    .hero { padding: 24px; }
+    .two-col { grid-template-columns: 1fr; }
+    .main { padding: 20px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">HireReady<span>.AI</span></div>
+  <div class="header-actions">
+    <div class="badge">FREE</div>
+    <button class="premium-btn" onclick="alert('Premium coming soon! ₹99/month for unlimited features.')">⚡ Premium</button>
+  </div>
+</div>
+
+<!-- API Bar -->
+<div class="api-bar" id="apiBar">
+  <div class="api-bar-text">🔑 Enter API Key to Activate AI</div>
+  <div class="api-row">
+    <input type="password" class="api-input" id="apiInput" placeholder="sk-ant-api03-..." />
+    <button class="api-save" onclick="saveKey()">Activate ✓</button>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+  <button class="nav-btn active" onclick="go('home', this)">🏠 Home</button>
+  <button class="nav-btn" onclick="go('resume', this)">📄 Resume Builder</button>
+  <button class="nav-btn" onclick="go('cover', this)">✉️ Cover Letter</button>
+  <button class="nav-btn" onclick="go('interview', this)">🎤 Interview Prep</button>
+  <button class="nav-btn" onclick="go('linkedin', this)">💼 LinkedIn Bio</button>
+  <button class="nav-btn" onclick="go('salary', this)">💰 Salary Guide</button>
+</div>
+
+<!-- Content -->
+<div class="main">
+
+  <!-- HOME -->
+  <div class="tab-content active" id="tab-home">
+    <div class="hero">
+      <div class="hero-tag">✨ AI Powered • Free to Use</div>
+      <h1>Land Your Dream Job<br>with <span>AI Help</span></h1>
+      <p>Build professional resumes, write cover letters, prepare for interviews and negotiate salary — all powered by advanced AI. Completely free!</p>
+      <div class="hero-grid">
+        <div class="hero-pill" onclick="goByName('resume')">📄 Resume Builder</div>
+        <div class="hero-pill" onclick="goByName('cover')">✉️ Cover Letter</div>
+        <div class="hero-pill" onclick="goByName('interview')">🎤 Interview Prep</div>
+        <div class="hero-pill" onclick="goByName('linkedin')">💼 LinkedIn Bio</div>
+        <div class="hero-pill" onclick="goByName('salary')">💰 Salary Guide</div>
+      </div>
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat-card" onclick="goByName('resume')">
+        <div class="feat-icon">📄</div>
+        <h3>Resume Builder</h3>
+        <p>AI writes a professional, ATS-friendly resume from your details.</p>
+      </div>
+      <div class="feat-card" onclick="goByName('cover')">
+        <div class="feat-icon">✉️</div>
+        <h3>Cover Letter</h3>
+        <p>Personalized cover letters for any job in seconds.</p>
+      </div>
+      <div class="feat-card" onclick="goByName('interview')">
+        <div class="feat-icon">🎤</div>
+        <h3>Interview Prep</h3>
+        <p>Practice questions and perfect answers for your target role.</p>
+      </div>
+      <div class="feat-card" onclick="goByName('linkedin')">
+        <div class="feat-icon">💼</div>
+        <h3>LinkedIn Bio</h3>
+        <p>Write a powerful LinkedIn summary that gets recruiters' attention.</p>
+      </div>
+      <div class="feat-card" onclick="goByName('salary')">
+        <div class="feat-icon">💰</div>
+        <h3>Salary Guide</h3>
+        <p>Know your market value and how to negotiate the best package.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUME BUILDER -->
+  <div class="tab-content" id="tab-resume">
+    <div class="card">
+      <div class="card-title">📄 Resume Builder</div>
+      <div class="card-sub">Fill your details — AI writes a professional, ATS-friendly resume</div>
+
+      <div class="lbl">Full Name</div>
+      <input type="text" id="rName" placeholder="e.g. Bhumika Sharma" />
+
+      <div class="two-col" style="margin-top:14px;">
+        <div>
+          <div class="lbl">Job Title / Role Applying For</div>
+          <input type="text" id="rRole" placeholder="e.g. Software Engineer" />
+        </div>
+        <div>
+          <div class="lbl">Years of Experience</div>
+          <select id="rExp">
+            <option>Fresher (0 years)</option>
+            <option>1-2 years</option>
+            <option>3-5 years</option>
+            <option>5-10 years</option>
+            <option>10+ years</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="lbl">Education</div>
+      <input type="text" id="rEdu" placeholder="e.g. B.Tech Computer Science, XYZ University, 2024" />
+
+      <div class="lbl">Skills (comma separated)</div>
+      <input type="text" id="rSkills" placeholder="e.g. Python, Excel, Communication, MS Office, Tally" />
+
+      <div class="lbl">Work Experience / Projects (describe briefly)</div>
+      <textarea id="rWork" placeholder="e.g. Worked as intern at ABC company for 6 months. Did data entry and report making. OR Final year project on machine learning..."></textarea>
+
+      <div class="lbl">Achievements / Extra (optional)</div>
+      <input type="text" id="rExtra" placeholder="e.g. Won college fest, NSS volunteer, 90% in 12th board" />
+
+      <div class="row">
+        <select id="rStyle">
+          <option value="professional">Professional Style</option>
+          <option value="creative">Creative Style</option>
+          <option value="fresher">Fresher Style</option>
+        </select>
+        <button class="go-btn" onclick="buildResume()" id="resumeBtn">Build Resume ✨</button>
+      </div>
+    </div>
+
+    <div class="err" id="resumeErr"></div>
+    <div class="result" id="resumeResult">
+      <div class="result-top">
+        <div class="ai-tag">RESUME</div>
+        <div class="result-label">Your professional resume is ready!</div>
+        <button class="copy-btn" onclick="copyText('resumeBody')">📋 Copy</button>
+      </div>
+      <div class="result-body" id="resumeBody"></div>
+    </div>
+  </div>
+
+  <!-- COVER LETTER -->
+  <div class="tab-content" id="tab-cover">
+    <div class="card">
+      <div class="card-title">✉️ Cover Letter Writer</div>
+      <div class="card-sub">Get a personalized, professional cover letter for any job</div>
+
+      <div class="two-col">
+        <div>
+          <div class="lbl">Your Name</div>
+          <input type="text" id="cName" placeholder="Your full name" />
+        </div>
+        <div>
+          <div class="lbl">Your Profession / Field</div>
+          <input type="text" id="cProf" placeholder="e.g. Marketing Executive" />
+        </div>
+      </div>
+
+      <div class="lbl">Company Name & Job Role</div>
+      <input type="text" id="cJob" placeholder="e.g. Google India — Data Analyst position" />
+
+      <div class="lbl">Your Key Skills & Experience</div>
+      <textarea id="cSkills" placeholder="e.g. 2 years experience in digital marketing, Google Ads certified, managed ₹10L budget campaigns, MBA from Delhi University..."></textarea>
+
+      <div class="lbl">Why do you want this job? (optional)</div>
+      <input type="text" id="cWhy" placeholder="e.g. Passionate about data, want to work at a global company" />
+
+      <div class="row">
+        <select id="cTone">
+          <option value="professional and confident">Professional</option>
+          <option value="enthusiastic and fresh">Enthusiastic</option>
+          <option value="formal and respectful">Formal</option>
+        </select>
+        <button class="go-btn" onclick="writeCover()" id="coverBtn">Write Cover Letter ✉️</button>
+      </div>
+    </div>
+
+    <div class="err" id="coverErr"></div>
+    <div class="result" id="coverResult">
+      <div class="result-top">
+        <div class="ai-tag">COVER LETTER</div>
+        <div class="result-label">Ready to send!</div>
+        <button class="copy-btn" onclick="copyText('coverBody')">📋 Copy</button>
+      </div>
+      <div class="result-body" id="coverBody"></div>
+    </div>
+  </div>
+
+  <!-- INTERVIEW PREP -->
+  <div class="tab-content" id="tab-interview">
+    <div class="card">
+      <div class="card-title">🎤 Interview Preparation</div>
+      <div class="card-sub">Practice questions with ideal answers for your specific role</div>
+
+      <div class="two-col">
+        <div>
+          <div class="lbl">Job Role</div>
+          <input type="text" id="iRole" placeholder="e.g. Software Engineer" />
+        </div>
+        <div>
+          <div class="lbl">Company Type</div>
+          <select id="iCompany">
+            <option value="startup">Startup</option>
+            <option value="MNC">MNC / Large Company</option>
+            <option value="government">Government / PSU</option>
+            <option value="any company">Any Company</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="lbl">Your Experience Level</div>
+      <select id="iExp" style="margin-bottom:0;">
+        <option value="fresher with no experience">Fresher</option>
+        <option value="junior with 1-3 years experience">Junior (1-3 years)</option>
+        <option value="mid-level with 3-7 years experience">Mid Level (3-7 years)</option>
+        <option value="senior with 7+ years experience">Senior (7+ years)</option>
+      </select>
+
+      <div class="row">
+        <select id="iCount">
+          <option value="5">5 Questions</option>
+          <option value="8" selected>8 Questions</option>
+          <option value="10">10 Questions</option>
+        </select>
+        <select id="iType">
+          <option value="mixed (HR + Technical + Behavioral)">All Types</option>
+          <option value="HR and behavioral">HR Only</option>
+          <option value="technical">Technical Only</option>
+          <option value="behavioral using STAR method">Behavioral</option>
+        </select>
+        <button class="go-btn" onclick="prepInterview()" id="interviewBtn">Generate Questions 🎤</button>
+      </div>
+    </div>
+
+    <div class="err" id="interviewErr"></div>
+    <div id="interviewResults"></div>
+  </div>
+
+  <!-- LINKEDIN BIO -->
+  <div class="tab-content" id="tab-linkedin">
+    <div class="card">
+      <div class="card-title">💼 LinkedIn Bio Writer</div>
+      <div class="card-sub">A powerful LinkedIn summary that gets recruiters' attention</div>
+
+      <div class="two-col">
+        <div>
+          <div class="lbl">Your Name & Title</div>
+          <input type="text" id="lName" placeholder="e.g. Bhumika Sharma, MBA" />
+        </div>
+        <div>
+          <div class="lbl">Current / Target Role</div>
+          <input type="text" id="lRole" placeholder="e.g. Marketing Manager" />
+        </div>
+      </div>
+
+      <div class="lbl">Your Experience & Skills</div>
+      <textarea id="lExp" placeholder="e.g. 5 years in digital marketing, SEO expert, managed teams of 10, worked at startups and MNCs, MBA from IIM..."></textarea>
+
+      <div class="lbl">Your Achievements</div>
+      <input type="text" id="lAchieve" placeholder="e.g. Grew revenue by 200%, launched 3 products, won best employee award" />
+
+      <div class="row">
+        <select id="lGoal">
+          <option value="open to new opportunities">Open to Jobs</option>
+          <option value="growing in current role">Growing in Role</option>
+          <option value="looking for freelance projects">Freelancing</option>
+          <option value="building my personal brand">Personal Brand</option>
+        </select>
+        <button class="go-btn" onclick="writeLinkedIn()" id="linkedinBtn">Write Bio 💼</button>
+      </div>
+    </div>
+
+    <div class="err" id="linkedinErr"></div>
+    <div class="result" id="linkedinResult">
+      <div class="result-top">
+        <div class="ai-tag">LINKEDIN BIO</div>
+        <div class="result-label">Ready to paste on LinkedIn!</div>
+        <button class="copy-btn" onclick="copyText('linkedinBody')">📋 Copy</button>
+      </div>
+      <div class="result-body" id="linkedinBody"></div>
+    </div>
+  </div>
+
+  <!-- SALARY GUIDE -->
+  <div class="tab-content" id="tab-salary">
+    <div class="card">
+      <div class="card-title">💰 Salary Guide & Negotiation</div>
+      <div class="card-sub">Know your market value and negotiate the best package</div>
+
+      <div class="two-col">
+        <div>
+          <div class="lbl">Job Role</div>
+          <input type="text" id="sRole" placeholder="e.g. Data Scientist" />
+        </div>
+        <div>
+          <div class="lbl">City</div>
+          <select id="sCity">
+            <option>Bangalore</option>
+            <option>Mumbai</option>
+            <option>Delhi/NCR</option>
+            <option>Hyderabad</option>
+            <option>Pune</option>
+            <option>Chennai</option>
+            <option>Kolkata</option>
+            <option>Bhopal</option>
+            <option>Other City</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:14px;">
+        <div>
+          <div class="lbl">Experience</div>
+          <select id="sExp">
+            <option>Fresher</option>
+            <option>1-2 years</option>
+            <option>3-5 years</option>
+            <option>5-10 years</option>
+            <option>10+ years</option>
+          </select>
+        </div>
+        <div>
+          <div class="lbl">Current Salary (if any)</div>
+          <input type="text" id="sCurrent" placeholder="e.g. ₹4 LPA or Fresher" />
+        </div>
+      </div>
+
+      <div class="lbl">Skills You Have</div>
+      <input type="text" id="sSkills" placeholder="e.g. Python, Machine Learning, SQL, TensorFlow" />
+
+      <div class="row">
+        <button class="go-btn" onclick="getSalary()" id="salaryBtn">Get Salary Guide 💰</button>
+      </div>
+    </div>
+
+    <div class="err" id="salaryErr"></div>
+    <div class="salary-result" id="salaryResult">
+      <div style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Expected Salary Range</div>
+      <div class="salary-range" id="salaryRange">₹X - ₹Y LPA</div>
+      <div class="salary-label" id="salaryCity">In your city</div>
+      <div class="salary-body" id="salaryBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let apiKey = localStorage.getItem('hireready_key') || '';
+  if (apiKey) document.getElementById('apiBar').classList.add('hidden');
+
+  function saveKey() {
+    const k = document.getElementById('apiInput').value.trim();
+    if (!k.startsWith('sk-ant-')) { alert('Invalid key!'); return; }
+    apiKey = k;
+    localStorage.setItem('hireready_key', k);
+    document.getElementById('apiBar').classList.add('hidden');
+    alert('✅ Activated! All features unlocked.');
+  }
+
+  function go(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function goByName(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  function checkKey() {
+    if (!apiKey) {
+      alert('Please enter your API key first!');
+      document.getElementById('apiBar').classList.remove('hidden');
+      return false;
+    }
+    return true;
+  }
+
+  function loader() {
+    return '<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  }
+
+  async function callAI(prompt, system = '') {
+    const body = {
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    };
+    if (system) body.system = system;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API Error'); }
+    const d = await res.json();
+    return d.content[0].text;
+  }
+
+  function copyText(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => alert('✅ Copied to clipboard!'));
+  }
+
+  // RESUME BUILDER
+  async function buildResume() {
+    if (!checkKey()) return;
+    const name = document.getElementById('rName').value.trim();
+    const role = document.getElementById('rRole').value.trim();
+    if (!name || !role) { alert('Please fill Name and Job Role!'); return; }
+
+    const exp = document.getElementById('rExp').value;
+    const edu = document.getElementById('rEdu').value;
+    const skills = document.getElementById('rSkills').value;
+    const work = document.getElementById('rWork').value;
+    const extra = document.getElementById('rExtra').value;
+    const style = document.getElementById('rStyle').value;
+
+    const btn = document.getElementById('resumeBtn');
+    const result = document.getElementById('resumeResult');
+    const body = document.getElementById('resumeBody');
+    const err = document.getElementById('resumeErr');
+
+    btn.disabled = true; btn.textContent = 'Building...';
+    err.classList.remove('show');
+    result.classList.add('show');
+    body.innerHTML = loader();
+
+    try {
+      const prompt = `Create a ${style} resume for:
+Name: ${name}
+Role applying for: ${role}
+Experience: ${exp}
+Education: ${edu}
+Skills: ${skills}
+Work/Projects: ${work}
+Achievements: ${extra}
+
+Write a complete, ATS-friendly resume with all sections: Contact, Summary, Skills, Experience/Projects, Education, Achievements. Make it professional and impactful. Format it clearly with section headers.`;
+
+      const ans = await callAI(prompt, 'You are an expert resume writer and career coach. Write professional, ATS-optimized resumes that get interviews. Be specific and impactful.');
+      body.textContent = ans;
+    } catch(e) {
+      result.classList.remove('show');
+      err.textContent = '❌ ' + e.message;
+      err.classList.add('show');
+    }
+
+    btn.disabled = false; btn.textContent = 'Build Resume ✨';
+  }
+
+  // COVER LETTER
+  async function writeCover() {
+    if (!checkKey()) return;
+    const name = document.getElementById('cName').value.trim();
+    const job = document.getElementById('cJob').value.trim();
+    if (!name || !job) { alert('Please fill Name and Job details!'); return; }
+
+    const prof = document.getElementById('cProf').value;
+    const skills = document.getElementById('cSkills').value;
+    const why = document.getElementById('cWhy').value;
+    const tone = document.getElementById('cTone').value;
+
+    const btn = document.getElementById('coverBtn');
+    const result = document.getElementById('coverResult');
+    const body = document.getElementById('coverBody');
+    const err = document.getElementById('coverErr');
+
+    btn.disabled = true; btn.textContent = 'Writing...';
+    err.classList.remove('show');
+    result.classList.add('show');
+    body.innerHTML = loader();
+
+    try {
+      const prompt = `Write a ${tone} cover letter for:
+Applicant: ${name} (${prof})
+Applying to: ${job}
+Key skills/experience: ${skills}
+Why they want this job: ${why}
+
+Write a complete, compelling cover letter with proper greeting, 3-4 strong paragraphs, and professional closing. Make it personal, specific, and convincing.`;
+
+      const ans = await callAI(prompt, 'You are an expert cover letter writer. Write compelling, personalized cover letters that stand out and get callbacks.');
+      body.textContent = ans;
+    } catch(e) {
+      result.classList.remove('show');
+      err.textContent = '❌ ' + e.message;
+      err.classList.add('show');
+    }
+
+    btn.disabled = false; btn.textContent = 'Write Cover Letter ✉️';
+  }
+
+  // INTERVIEW PREP
+  async function prepInterview() {
+    if (!checkKey()) return;
+    const role = document.getElementById('iRole').value.trim();
+    if (!role) { alert('Please enter the job role!'); return; }
+
+    const company = document.getElementById('iCompany').value;
+    const exp = document.getElementById('iExp').value;
+    const count = document.getElementById('iCount').value;
+    const type = document.getElementById('iType').value;
+
+    const btn = document.getElementById('interviewBtn');
+    const results = document.getElementById('interviewResults');
+    const err = document.getElementById('interviewErr');
+
+    btn.disabled = true; btn.textContent = 'Generating...';
+    err.classList.remove('show');
+    results.innerHTML = `<div class="card">${loader()}</div>`;
+
+    try {
+      const prompt = `Generate ${count} ${type} interview questions for a ${exp} applying for ${role} at a ${company}.
+
+Return ONLY a JSON array:
+[{"question": "Question text", "answer": "Ideal answer with key points to cover"}]
+
+Make questions realistic and answers practical with specific examples. Only JSON, no extra text.`;
+
+      const raw = await callAI(prompt, 'You are an expert interview coach. Generate realistic interview questions with ideal answers. Return only valid JSON array.');
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const match = clean.match(/\[[\s\S]*\]/);
+      const qs = JSON.parse(match ? match[0] : clean);
+
+      results.innerHTML = `<div style="font-size:13px;color:var(--text-dim);margin-bottom:14px;">💡 Click "Show Answer" to reveal ideal answers</div>`;
+      qs.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'qa-card';
+        div.innerHTML = `
+          <div class="qa-q">
+            <span class="qa-q-num">Q${i+1}</span>
+            ${q.question}
+          </div>
+          <button class="reveal-btn" onclick="this.nextElementSibling.classList.toggle('show'); this.textContent = this.nextElementSibling.classList.contains('show') ? 'Hide Answer ↑' : 'Show Answer ↓'">Show Answer ↓</button>
+          <div class="qa-a">💡 <strong>Ideal Answer:</strong><br><br>${q.answer}</div>
+        `;
+        results.appendChild(div);
+      });
+
+    } catch(e) {
+      results.innerHTML = '';
+      err.textContent = '❌ ' + e.message;
+      err.classList.add('show');
+    }
+
+    btn.disabled = false; btn.textContent = 'Generate Questions 🎤';
+  }
+
+  // LINKEDIN BIO
+  async function writeLinkedIn() {
+    if (!checkKey()) return;
+    const name = document.getElementById('lName').value.trim();
+    const role = document.getElementById('lRole').value.trim();
+    if (!name || !role) { alert('Please fill Name and Role!'); return; }
+
+    const exp = document.getElementById('lExp').value;
+    const achieve = document.getElementById('lAchieve').value;
+    const goal = document.getElementById('lGoal').value;
+
+    const btn = document.getElementById('linkedinBtn');
+    const result = document.getElementById('linkedinResult');
+    const body = document.getElementById('linkedinBody');
+    const err = document.getElementById('linkedinErr');
+
+    btn.disabled = true; btn.textContent = 'Writing...';
+    err.classList.remove('show');
+    result.classList.add('show');
+    body.innerHTML = loader();
+
+    try {
+      const prompt = `Write a powerful LinkedIn About/Summary section for:
+Name: ${name}
+Role: ${role}
+Experience & Skills: ${exp}
+Key Achievements: ${achieve}
+Current goal: ${goal}
+
+Write an engaging 3-4 paragraph LinkedIn bio that:
+1. Starts with a strong hook
+2. Highlights key skills and experience
+3. Mentions achievements with numbers if possible
+4. Ends with a call to action
+Keep it under 2000 characters. Make it human, not robotic.`;
+
+      const ans = await callAI(prompt, 'You are a LinkedIn expert and personal branding coach. Write compelling LinkedIn bios that attract recruiters and opportunities.');
+      body.textContent = ans;
+    } catch(e) {
+      result.classList.remove('show');
+      err.textContent = '❌ ' + e.message;
+      err.classList.add('show');
+    }
+
+    btn.disabled = false; btn.textContent = 'Write Bio 💼';
+  }
+
+  // SALARY GUIDE
+  async function getSalary() {
+    if (!checkKey()) return;
+    const role = document.getElementById('sRole').value.trim();
+    if (!role) { alert('Please enter your job role!'); return; }
+
+    const city = document.getElementById('sCity').value;
+    const exp = document.getElementById('sExp').value;
+    const current = document.getElementById('sCurrent').value;
+    const skills = document.getElementById('sSkills').value;
+
+    const btn = document.getElementById('salaryBtn');
+    const result = document.getElementById('salaryResult');
+    const rangeEl = document.getElementById('salaryRange');
+    const cityEl = document.getElementById('salaryCity');
+    const body = document.getElementById('salaryBody');
+    const err = document.getElementById('salaryErr');
+
+    btn.disabled = true; btn.textContent = 'Researching...';
+    err.classList.remove('show');
+    result.classList.add('show');
+    rangeEl.textContent = '...';
+    body.innerHTML = loader();
+
+    try {
+      const prompt = `Provide salary guide for:
+Role: ${role}
+City: ${city}, India
+Experience: ${exp}
+Current salary: ${current}
+Skills: ${skills}
+
+Give:
+1. Expected salary range in LPA (be specific e.g. ₹8-14 LPA)
+2. Factors affecting salary
+3. How to negotiate for higher salary
+4. Skills that can increase salary
+5. Sample negotiation script
+
+Start your response with the salary range on the very first line in format: "RANGE: ₹X - ₹Y LPA"`;
+
+      const ans = await callAI(prompt, 'You are a career expert with deep knowledge of Indian job market salaries. Give accurate, practical salary information and negotiation advice.');
+
+      const lines = ans.split('\n');
+      const rangeLine = lines.find(l => l.startsWith('RANGE:'));
+      if (rangeLine) {
+        rangeEl.textContent = rangeLine.replace('RANGE:', '').trim();
+        body.textContent = lines.filter(l => !l.startsWith('RANGE:')).join('\n').trim();
+      } else {
+        rangeEl.textContent = 'See details below';
+        body.textContent = ans;
+      }
+      cityEl.textContent = `In ${city} • ${exp}`;
+
+    } catch(e) {
+      result.classList.remove('show');
+      err.textContent = '❌ ' + e.message;
+      err.classList.add('show');
+    }
+
+    btn.disabled = false; btn.textContent = 'Get Salary Guide 💰';
+  }
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/service-worker.js");
+  }
+</script></body>
+</html>
